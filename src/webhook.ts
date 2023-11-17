@@ -1,3 +1,5 @@
+const WEBHOOK_URL = Bun.env.CONVERT_KIT_BASE_URL + '/automations/hooks'
+
 export async function createWebhook(
     targetUrl: string,
     event: EventTypes[number]
@@ -6,7 +8,7 @@ export async function createWebhook(
         api_key: Bun.env.CONVERT_KIT_API_KEY
     })
 
-    const url = new URL(Bun.env.CONVERT_KIT_BASE_URL + '/automations/hooks')
+    const url = new URL(WEBHOOK_URL)
     url.search = params.toString()
     console.log('sending request to ' + url)
 
@@ -16,6 +18,7 @@ export async function createWebhook(
         event: event
     }
     console.log('request body: ', requestBody)
+
     try {
         const response = await fetch(url, {
             method: 'POST',
@@ -26,12 +29,24 @@ export async function createWebhook(
         })
 
         if (response.status === 200) {
-            return response
+            const json = (await response.json()) as CreateWebhookResponse
+            console.log(Bun.inspect(json))
+            await writeToLog(json)
+            return json
         }
-        console.error(response.statusText)
+        await Bun.write('logs/error.log', response)
+        console.error('error creating webook: ' + (await response.text()))
     } catch (error) {
-        console.log(error)
+        console.log('error caught: ', error)
     }
+}
+
+async function writeToLog(json: any) {
+    const existingLog = await Bun.file('logs/webhooks.json').json()
+    // append to existing log
+    const newLog = existingLog.concat(json)
+    await Bun.write('logs/webhooks.json', JSON.stringify(newLog, null, 2))
+    console.log('wrote log to logs/webhooks.json')
 }
 
 export async function deleteWebhook(webhookId: number) {
@@ -39,8 +54,8 @@ export async function deleteWebhook(webhookId: number) {
         api_key: Bun.env.CONVERT_KIT_API_KEY
     })
 
-    const url = new URL(Bun.env.CONVERT_KIT_BASE_URL)
-    url.pathname = `/automations/hooks/${webhookId}`
+    const url = new URL(WEBHOOK_URL + '/' + webhookId)
+
     url.search = params.toString()
     console.log('sending request to ' + url)
 
@@ -58,11 +73,20 @@ export async function deleteWebhook(webhookId: number) {
         })
 
         if (response.status === 200) {
-            return (await response.json()) as { success: boolean }
+            const json = (await response.json()) as { success: boolean }
+            console.log(Bun.inspect(json))
+            await writeToLog(json)
+            console.log('deleted webhook ' + webhookId)
+            return json
         }
-        console.error(await response.text())
+        const errorLog = Bun.file('logs/error.log').text()
+        console.error('error deleting webhook: ', response)
+        await Bun.write(
+            'logs/error.log',
+            errorLog + '\n' + (await response.text())
+        )
     } catch (error) {
-        console.log(error)
+        console.error('error caught: ', error)
     }
 }
 

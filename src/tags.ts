@@ -74,8 +74,10 @@ export async function tagSubscriber(email: string, tagId?: number) {
         api_key: Bun.env.CONVERT_KIT_API_KEY
     })
 
-    const url = new URL(Bun.env.CONVERT_KIT_BASE_URL)
-    url.pathname = `/tags/${tagId}/subscribe`
+    const url = new URL(
+        Bun.env.CONVERT_KIT_BASE_URL + `/tags/${tagId}/subscribe`
+    )
+
     url.search = params.toString()
     console.log('sending request to ' + url)
 

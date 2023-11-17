@@ -8,7 +8,9 @@
         "deploy": "bun run --bun clasp deploy",
         "push:deploy": "bun run push && bun run deploy",
         "update": "bun run --bun clasp update",
-        "test": "bun src/subs.ts"
+        "test": "bun src/subs.ts",
+        "main": "bun convertkit.ts --",
+        "delete:hook": "bun run main deleteWebhook"
     },
     "devDependencies": {
         "@types/google-apps-script": "^1.0.77",
