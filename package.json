@@ -1,0 +1,21 @@
+{
+    "name": "tattered-capes-convertkit",
+    "module": "index.ts",
+    "type": "module",
+    "scripts": {
+        "clasp": "bun run --bun clasp.ts",
+        "push": "bun esbuild.config.ts && bun run --bun clasp push",
+        "deploy": "bun run --bun clasp deploy",
+        "push:deploy": "bun run push && bun run deploy",
+        "update": "bun run --bun clasp update",
+        "test": "bun src/subs.ts"
+    },
+    "devDependencies": {
+        "@types/google-apps-script": "^1.0.77",
+        "bun-types": "latest",
+        "esbuild": "^0.19.5"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    }
+}
